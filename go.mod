@@ -1,4 +1,4 @@
-module evdevmonitor
+module mousetracker
 
 go 1.20
 

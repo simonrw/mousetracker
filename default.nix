@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {} }:
 with pkgs;
 buildGoModule {
-  pname = "evdevmonitor";
+  pname = "mousetracker";
   version = "unstable";
 
   src = ./.;
