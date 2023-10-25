@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"database/sql"
+
 	evdev "github.com/gvalkov/golang-evdev"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -92,13 +95,30 @@ func (d *SqliteDatabase) Close() {
 	d.db.Close()
 }
 
+func argError(message string) {
+	fmt.Fprintln(os.Stderr, message)
+	fmt.Fprintln(os.Stderr, "Usage:")
+	flag.PrintDefaults()
+	os.Exit(1)
+}
 func main() {
-	ch, err := GenerateEvents(context.TODO(), "/dev/input/by-id/usb-Logitech_G203_LIGHTSYNC_Gaming_Mouse_205935534B58-event-mouse")
+	var (
+		inputPathArg = flag.String("flag", "", "Input path")
+		dbArg        = flag.String("db", "db.db", "Path to the database")
+		timeoutArg   = flag.Float64("timeout", 5, "Seconds to wait before starting new session")
+	)
+	flag.Parse()
+
+	if *inputPathArg == "" {
+		argError("no input path given")
+	}
+
+	ch, err := GenerateEvents(context.TODO(), *inputPathArg)
 	if err != nil {
 		panic(err)
 	}
 
-	db, err := NewDB("db.db")
+	db, err := NewDB(*dbArg)
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +128,7 @@ func main() {
 	last := time.Now()
 	log.Printf("starting collecting readings")
 	for t := range ch {
-		if t.Sub(last).Seconds() > 5 {
+		if t.Sub(last).Seconds() > *timeoutArg {
 			last = time.Now()
 			log.Printf("got new readings group with %d entries", len(readingsInChunk))
 			if len(readingsInChunk) == 0 {
