@@ -44,7 +44,7 @@
             systemd.user.services.mousetracker = {
               Unit.Description = "Foo";
               Install.WantedBy = [ "graphical-session.target" ];
-              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag ${cfg.device} -timeout ${cfg.timeout} -db ${cfg.dbPath}";
+              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag ${cfg.device} -timeout ${builtins.toString cfg.timeout} -db ${cfg.dbPath}";
             };
           };
         };
