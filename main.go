@@ -6,7 +6,9 @@ import (
 	"log"
 	"time"
 
+	"database/sql"
 	evdev "github.com/gvalkov/golang-evdev"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type EventType = uint64
@@ -47,17 +49,47 @@ func GenerateEvents(ctx context.Context, deviceName string) (chan time.Time, err
 
 type Database interface {
 	Persist(start *time.Time, end *time.Time) error
+	Close()
 }
 
 type SqliteDatabase struct {
+	db *sql.DB
 }
 
-func NewDB() Database {
-	return &SqliteDatabase{}
+func NewDB(path string) (Database, error) {
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		return nil, fmt.Errorf("opening sqlite database: %w", err)
+	}
+
+	d := &SqliteDatabase{
+		db,
+	}
+	if err := d.init(); err != nil {
+		return nil, fmt.Errorf("initialising database: %w", err)
+	}
+
+	return d, err
+}
+
+func (d *SqliteDatabase) init() error {
+	_, err := d.db.Exec("create table if not exists sessions (id integer primary key, start datetime not null, end datetime not null)")
+	if err != nil {
+		return fmt.Errorf("initialising database: %w", err)
+	}
+	return nil
 }
 
 func (d *SqliteDatabase) Persist(start *time.Time, end *time.Time) error {
+	_, err := d.db.Exec("insert into sessions (start, end) values (?, ?)", start, end)
+	if err != nil {
+		return fmt.Errorf("inserting session into database: %w", err)
+	}
 	return nil
+}
+
+func (d *SqliteDatabase) Close() {
+	d.db.Close()
 }
 
 func main() {
@@ -66,7 +98,12 @@ func main() {
 		panic(err)
 	}
 
-	db := NewDB()
+	db, err := NewDB("db.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	var readingsInChunk []time.Time
 	last := time.Now()
 	log.Printf("starting collecting readings")
