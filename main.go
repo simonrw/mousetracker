@@ -23,13 +23,13 @@ const (
 	EV_MSC           = 4
 )
 
-func GenerateEvents(ctx context.Context, deviceName string) (chan time.Time, error) {
+func GenerateEvents(ctx context.Context, deviceName string) (chan *time.Time, error) {
 	device, err := evdev.Open(deviceName)
 	if err != nil {
 		return nil, fmt.Errorf("opening input device %s", deviceName)
 	}
 
-	ch := make(chan time.Time)
+	ch := make(chan *time.Time)
 	go func() {
 		for {
 			events, err := device.Read()
@@ -43,7 +43,7 @@ func GenerateEvents(ctx context.Context, deviceName string) (chan time.Time, err
 				}
 
 				t := time.Unix(event.Time.Sec, event.Time.Usec*1000)
-				ch <- t
+				ch <- &t
 			}
 		}
 	}()
@@ -84,6 +84,7 @@ func (d *SqliteDatabase) init() error {
 }
 
 func (d *SqliteDatabase) Persist(start *time.Time, end *time.Time) error {
+	log.Printf("persisting start=%s end=%s", start, end)
 	_, err := d.db.Exec("insert into sessions (start, end) values (?, ?)", start, end)
 	if err != nil {
 		return fmt.Errorf("inserting session into database: %w", err)
@@ -124,22 +125,26 @@ func main() {
 	}
 	defer db.Close()
 
-	var readingsInChunk []time.Time
-	last := time.Now()
 	log.Printf("starting collecting readings")
+	now := time.Now()
+	last := &now
+	var sessionStart *time.Time
+
 	for t := range ch {
-		if t.Sub(last).Seconds() > *timeoutArg {
-			last = time.Now()
-			log.Printf("got new readings group with %d entries", len(readingsInChunk))
-			if len(readingsInChunk) == 0 {
-				// ignore
-				continue
-			}
-			if err := db.Persist(&readingsInChunk[0], &last); err != nil {
+		// capture first event in session
+		if sessionStart == nil {
+			log.Printf("starting new session")
+			sessionStart = t
+		}
+
+		if t.Sub(*last).Seconds() > *timeoutArg {
+			log.Printf("got new readings group")
+			if err := db.Persist(sessionStart, last); err != nil {
 				log.Printf("error persisting to database: %v", err)
 			}
-			readingsInChunk = nil
+			log.Printf("closing session")
+			sessionStart = nil
 		}
-		readingsInChunk = append(readingsInChunk, t)
+		last = t
 	}
 }
