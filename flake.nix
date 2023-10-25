@@ -36,7 +36,7 @@
             dbPath = mkOption {
               type = types.str;
               description = "Output path for the session database";
-              default = "$XDG_DATA_HOME/mousetracker/db.db";
+              default = "${config.xdg.dataHome}/mousetracker/db.db";
             };
           };
 
