@@ -28,7 +28,7 @@
             systemd.user.services.mousetracker = {
               Unit.Description = "Foo";
               Install.WantedBy = [ "graphical-session.target" ];
-              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag /dev/input/by-id/usb-Logitech_G203_LIGHTSYNC_Gaming_Mouse_205935534B58-event-mouse -o /tmp/db.db";
+              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag /dev/input/by-id/usb-Logitech_G203_LIGHTSYNC_Gaming_Mouse_205935534B58-event-mouse -db /tmp/db.db";
             };
           };
         };
