@@ -17,6 +17,22 @@
         };
       in
       {
+        nixosModules.default = { config, lib, ... }: 
+        with lib;
+        let
+          cfg = config.mousetracker;
+        in
+        {
+          options = {
+            enable = mkEnableOption "mousetracker";
+          };
+
+          config = mkIf cfg.enable {
+            systemd.user.services.mousetracker = {
+              Unit.Description = "Foo";
+            };
+          };
+        };
         packages.default = import ./default.nix { inherit pkgs; };
         devShells.default = pkgs.mkShell {
           inputsFrom = [
