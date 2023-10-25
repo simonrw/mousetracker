@@ -28,6 +28,11 @@
               description = "Input device to monitor";
             };
 
+            timeout = mkOption {
+              type = types.int;
+              default = 5;
+            };
+
             dbPath = mkOption {
               type = types.str;
               description = "Output path for the session database";
@@ -39,7 +44,7 @@
             systemd.user.services.mousetracker = {
               Unit.Description = "Foo";
               Install.WantedBy = [ "graphical-session.target" ];
-              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag ${cfg.device} -db ${cfg.dbPath}";
+              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag ${cfg.device} -timeout ${cfg.timeout} -db ${cfg.dbPath}";
             };
           };
         };
