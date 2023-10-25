@@ -22,13 +22,25 @@
         {
           options.mousetracker = {
             enable = mkEnableOption "mousetracker";
+
+            device = mkOption {
+              type = types.str;
+              description = "Input device to monitor";
+            };
+
+            dbPath = mkOption {
+              type = types.str;
+              description = "Output path for the session database";
+              default = "$XDG_DATA_HOME/mousetracker/db.db";
+            };
           };
 
           config = mkIf cfg.enable {
             systemd.user.services.mousetracker = {
               Unit.Description = "Foo";
               Install.WantedBy = [ "graphical-session.target" ];
-              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag /dev/input/by-id/usb-Logitech_G203_LIGHTSYNC_Gaming_Mouse_205935534B58-event-mouse -db /tmp/db.db";
+              # Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag /dev/input/by-id/usb-Logitech_G203_LIGHTSYNC_Gaming_Mouse_205935534B58-event-mouse -db /tmp/db.db";
+              Service.ExecStart = "${self.outputs.packages.${system}.default}/bin/mousetracker -flag ${cfg.device} -db /tmp/db.db";
             };
           };
         };

@@ -2,3 +2,5 @@ github.com/gvalkov/golang-evdev v0.0.0-20220815104727-7e27d6ce89b6 h1:K9b8efT9f1
 github.com/gvalkov/golang-evdev v0.0.0-20220815104727-7e27d6ce89b6/go.mod h1:SAzVFKCRezozJTGavF3GX8MBUruETCqzivVLYiywouA=
 github.com/mattn/go-sqlite3 v1.14.17 h1:mCRHCLDUBXgpKAqIKsaAaAsrAlbkeomtRFKXh2L6YIM=
 github.com/mattn/go-sqlite3 v1.14.17/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
+github.com/pkgutil/osutil v0.0.0-20170314171437-2114b006ce9b h1:Q21TcoaCVo0V8elaVd2LN0y4yRlmNpicPtjQ9A4gLj0=
+github.com/pkgutil/osutil v0.0.0-20170314171437-2114b006ce9b/go.mod h1:wLNe7an0SWi0BUDQeCQwS5AlpW1gZvOZj+OcfvL+FVg=

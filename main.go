@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"time"
 
 	"database/sql"
 
 	evdev "github.com/gvalkov/golang-evdev"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pkgutil/osutil"
 )
 
 type EventType = uint64
@@ -96,12 +98,22 @@ func (d *SqliteDatabase) Close() {
 	d.db.Close()
 }
 
+func ensureOutputPath(outputPath string) error {
+	dir := path.Dir(outputPath)
+	if !osutil.IsDirExist(dir) {
+		osutil.MkdirAll(dir, 0777)
+	}
+
+	return nil
+}
+
 func argError(message string) {
 	fmt.Fprintln(os.Stderr, message)
 	fmt.Fprintln(os.Stderr, "Usage:")
 	flag.PrintDefaults()
 	os.Exit(1)
 }
+
 func main() {
 	var (
 		inputPathArg = flag.String("flag", "", "Input path")
@@ -112,6 +124,10 @@ func main() {
 
 	if *inputPathArg == "" {
 		argError("no input path given")
+	}
+
+	if err := ensureOutputPath(*dbArg); err != nil {
+		log.Fatalf("ensuring output path %s: %v", *dbArg, err)
 	}
 
 	ch, err := GenerateEvents(context.TODO(), *inputPathArg)
