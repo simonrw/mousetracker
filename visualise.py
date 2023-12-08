@@ -30,13 +30,14 @@ if __name__ == "__main__":
 
     LOG.info("loading state from %s", args.db)
 
-    start = datetime(2023, 10, 25, 9)
-    end = datetime(2023, 10, 25, 17, 30)
     conn = sqlite3.connect(args.db)
+    start, end = conn.execute("select min(start), max(end) from sessions").fetchone()
+    start = datetime.strptime(start, "%Y-%m-%d %H:%M:%S.%f%z")
+    end = datetime.strptime(end, "%Y-%m-%d %H:%M:%S.%f%z")
+
     df = pd.read_sql_query(
-        "SELECT * FROM sessions where start > ? and end < ?",
+        "SELECT * FROM sessions",
         conn,
-        params=[start, end],
     )
 
     LOG.info("calculating")
@@ -47,7 +48,7 @@ if __name__ == "__main__":
         duration = pd.to_datetime(session.end) - pd.to_datetime(session.start)
         total_time_seconds += duration.total_seconds()
 
+    print(f"Total days: {end - start}")
     print(f"Total mouse seconds: {total_time_seconds}")
     fraction = total_time_seconds * 100.0 / (end - start).total_seconds()
     print(f"Fraction of mouse movements: {fraction:.2f} %")
-
