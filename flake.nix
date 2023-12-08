@@ -49,10 +49,21 @@
           };
         };
       packages.${system}.default = import ./default.nix { inherit pkgs; };
-      devShells.${system}.default = pkgs.mkShell {
-        inputsFrom = [
-          self.outputs.packages.${system}.default
-        ];
-      };
+      devShells.${system}.default =
+        let
+          visualisation-python = pkgs.python3.withPackages (ps: with ps; [
+            matplotlib
+            pandas
+          ]);
+        in
+        pkgs.mkShell {
+          inputsFrom = [
+            self.outputs.packages.${system}.default
+          ];
+
+          packages = [
+            visualisation-python
+          ];
+        };
     };
 }
